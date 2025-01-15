@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Court Piece</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <div class="game-container">
+        <h1>Court Piece</h1>
+
+        <!-- Login Section -->
+        <div id="login-container">
+            <input type="text" id="username" placeholder="Username (player1, player2, etc.)">
+            <input type="password" id="password" placeholder="Password">
+            <button id="login">Login</button>
+        </div>
+
+        <!-- Game Actions Section -->
+        <div id="game-actions" style="display: none;">
+            <!-- Scoreboard -->
+            <div id="scoreboard">
+                <p>Team 1: <span id="team1-score">0</span></p>
+                <p>Team 2: <span id="team2-score">0</span></p>
+            </div>
+
+            <!-- Game Table -->
+            <div id="table">
+                <p>Game Table</p>
+                <div id="played-cards"></div>
+            </div>
+
+            <!-- Player Hands -->
+            <div id="player-hands">
+                <p>Your Hand:</p>
+                <div id="player-hand"></div>
+            </div>
+
+            <!-- Buttons -->
+            <div id="actions">
+                <button id="start-game">Start Game</button>
+                <button id="deal-cards" disabled>Deal Cards</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/scripts.js"></script>
+</body>
+</html>
