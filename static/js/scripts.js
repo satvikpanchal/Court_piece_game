@@ -1,40 +1,75 @@
 let playerId = null;
+let accessToken = null;
+
+document.getElementById("register").addEventListener("click", () => {
+    const username = document.getElementById("reg-username").value;
+    const password = document.getElementById("reg-password").value;
+    const confirmPassword = document.getElementById("reg-confirm-password").value;
+
+    fetch("/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password, confirm_password: confirmPassword }),
+    })
+        .then(response => {
+            if (!response.ok) throw new Error("Registration failed");
+            return response.json();
+        })
+        .then(data => {
+            alert(data.message);
+        })
+        .catch(err => alert(err.message));
+});
 
 document.getElementById("login").addEventListener("click", () => {
     const username = document.getElementById("username").value;
     const password = document.getElementById("password").value;
 
-    fetch("/login", {
+    fetch("/token", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: `username=${username}&password=${password}`,
     })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) throw new Error("Invalid credentials");
+            return response.json();
+        })
         .then(data => {
-            playerId = data.player_id;
-            alert(`Logged in as Player ${playerId}`);
+            accessToken = data.access_token;
+            playerId = username;
+            alert(`Logged in as ${playerId}`);
             document.getElementById("login-container").style.display = "none";
+            document.getElementById("register-container").style.display = "none";
             document.getElementById("game-actions").style.display = "block";
         })
-        .catch(err => alert("Invalid credentials!"));
+        .catch(err => alert(err.message));
 });
 
 document.getElementById("start-game").addEventListener("click", () => {
-    fetch("/new-game")
+    fetch("/create_game", {
+        method: "GET",
+        headers: { Authorization: `Bearer ${accessToken}` },
+    })
         .then(response => response.json())
         .then(data => {
-            alert("Game started!");
+            alert("Game started with Game ID: " + data.game_id);
             document.getElementById("deal-cards").disabled = false;
-        });
+            document.getElementById("game-id").innerText = data.game_id;
+        })
+        .catch(err => alert("Failed to start game"));
 });
 
 document.getElementById("deal-cards").addEventListener("click", () => {
-    fetch("/deal-cards")
+    const gameId = document.getElementById("game-id").innerText;
+    fetch(`/deal_cards/${gameId}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+    })
         .then(response => response.json())
         .then(data => {
-            displayPlayerHand(data.players[playerId]);
+            displayPlayerHand(data.hands[playerId]);
             alert("Cards dealt! Your turn.");
-        });
+        })
+        .catch(err => alert("Failed to deal cards"));
 });
 
 function displayPlayerHand(cards) {
@@ -50,8 +85,10 @@ function displayPlayerHand(cards) {
 }
 
 function playCard(cardCode) {
-    fetch(`/play-card?player_id=${playerId}&card_code=${cardCode}`, {
+    const gameId = document.getElementById("game-id").innerText;
+    fetch(`/play_card?player_id=${playerId}&card_code=${cardCode}`, {
         method: "POST",
+        headers: { Authorization: `Bearer ${accessToken}` },
     })
         .then(response => response.json())
         .then(data => {
@@ -78,4 +115,15 @@ function updateGameTable(table) {
 function updateScores(tricks) {
     document.getElementById("team1-score").innerText = tricks[1];
     document.getElementById("team2-score").innerText = tricks[2];
+}
+
+function showToast(message, duration = 5000) {
+    const toast = document.createElement("div");
+    toast.innerText = message;
+    toast.className = "toast";
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+        toast.remove();
+    }, duration);
 }

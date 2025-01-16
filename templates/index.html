@@ -10,9 +10,17 @@
     <div class="game-container">
         <h1>Court Piece</h1>
 
+        <!-- Registration Section -->
+        <div id="register-container">
+            <input type="text" id="reg-username" placeholder="Username">
+            <input type="password" id="reg-password" placeholder="Password">
+            <input type="password" id="reg-confirm-password" placeholder="Confirm Password">
+            <button id="register">Register</button>
+        </div>
+
         <!-- Login Section -->
         <div id="login-container">
-            <input type="text" id="username" placeholder="Username (player1, player2, etc.)">
+            <input type="text" id="username" placeholder="Username">
             <input type="password" id="password" placeholder="Password">
             <button id="login">Login</button>
         </div>
@@ -41,6 +49,11 @@
             <div id="actions">
                 <button id="start-game">Start Game</button>
                 <button id="deal-cards" disabled>Deal Cards</button>
+            </div>
+
+            <!-- Game ID Display -->
+            <div id="game-id-container">
+                <p>Game ID: <span id="game-id"></span></p>
             </div>
         </div>
     </div>

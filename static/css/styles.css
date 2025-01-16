@@ -18,6 +18,27 @@ h1 {
     margin-bottom: 20px;
 }
 
+/* Registration Styles */
+#register-container {
+    margin-bottom: 20px;
+}
+
+#register-container input {
+    padding: 10px;
+    margin: 5px;
+    width: 200px;
+}
+
+#register-container button {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    background: #d32f2f;
+    color: white;
+    border: none;
+    border-radius: 5px;
+}
+
 /* Login Styles */
 #login-container {
     margin-bottom: 20px;
@@ -89,4 +110,19 @@ button {
 button:disabled {
     background: gray;
     cursor: not-allowed;
+}
+
+.toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-size: 16px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    opacity: 0.9;
 }
