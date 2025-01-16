@@ -1,0 +1,6 @@
+fastapi
+pydantic
+bcrypt
+uvicorn
+python-multipart
+python-dotenv

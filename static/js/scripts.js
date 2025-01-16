@@ -59,17 +59,50 @@ document.getElementById("start-game").addEventListener("click", () => {
         .catch(err => alert("Failed to start game"));
 });
 
+document.getElementById("join-game").addEventListener("click", () => {
+    const gameId = prompt("Enter Game ID:");
+    fetch(`/join_game/${gameId}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ username: playerId }),
+    })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);
+            document.getElementById("deal-cards").disabled = false;
+            document.getElementById("game-id").innerText = gameId;
+        })
+        .catch(err => alert("Failed to join game"));
+});
+
 document.getElementById("deal-cards").addEventListener("click", () => {
     const gameId = document.getElementById("game-id").innerText;
     fetch(`/deal_cards/${gameId}`, {
+        method: "POST",
         headers: { Authorization: `Bearer ${accessToken}` },
     })
         .then(response => response.json())
         .then(data => {
             displayPlayerHand(data.hands[playerId]);
-            alert("Cards dealt! Your turn.");
+            alert("First 5 cards dealt! Select trump.");
         })
         .catch(err => alert("Failed to deal cards"));
+});
+
+document.getElementById("select-trump").addEventListener("click", () => {
+    const gameId = document.getElementById("game-id").innerText;
+    const trump = prompt("Select trump suit (hearts, diamonds, clubs, spades):");
+    fetch(`/select_trump/${gameId}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ player_id: playerId, trump: trump }),
+    })
+        .then(response => response.json())
+        .then(data => {
+            displayPlayerHand(data.hands[playerId]);
+            alert(`Trump selected: ${trump}. Remaining cards dealt.`);
+        })
+        .catch(err => alert("Failed to select trump"));
 });
 
 function displayPlayerHand(cards) {
@@ -86,7 +119,7 @@ function displayPlayerHand(cards) {
 
 function playCard(cardCode) {
     const gameId = document.getElementById("game-id").innerText;
-    fetch(`/play_card?player_id=${playerId}&card_code=${cardCode}`, {
+    fetch(`/play_card?game_id=${gameId}&player_id=${playerId}&card_code=${cardCode}`, {
         method: "POST",
         headers: { Authorization: `Bearer ${accessToken}` },
     })

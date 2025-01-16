@@ -1,41 +1,37 @@
 from fastapi import FastAPI, WebSocket, HTTPException, Depends, Request
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from pydantic import BaseModel, field_validator
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from pydantic import BaseModel, field_validator
+from dotenv import load_dotenv
 from typing import List, Dict
 import bcrypt
 import sqlite3
 import uvicorn
 import os
-from dotenv import load_dotenv
+import uuid
+
+# Initialize FastAPI app
+app = FastAPI()
 
 # Load environment variables
 load_dotenv()
 DATABASE = os.getenv("DATABASE_PATH", "court_piece.db")
 
-# FastAPI app
-app = FastAPI()
+# Serve static files (CSS, JS)
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Set up Jinja2 templates for HTML files
+templates = Jinja2Templates(directory="templates")
+
+# Root route for serving the index.html
+@app.get("/", response_class=HTMLResponse)
+async def serve_frontend(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
 
 # OAuth2 setup
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/token")
-
-# In-memory storage for game states
-game_states = {}
-
-# Initialize database
-def init_db():
-    conn = sqlite3.connect(DATABASE)
-    cursor = conn.cursor()
-    cursor.execute('''CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT UNIQUE NOT NULL,
-        password_hash TEXT NOT NULL
-    )''')
-    conn.commit()
-    conn.close()
-init_db()
 
 # User model
 class User(BaseModel):
@@ -69,7 +65,7 @@ def create_user(username: str, password: str):
     except sqlite3.IntegrityError:
         raise HTTPException(status_code=400, detail="Username already exists")
 
-# Root route
+# Root endpoint
 @app.get("/")
 async def root():
     return {"message": "Court Piece API is running!"}
@@ -87,12 +83,13 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     return {"access_token": user[1], "token_type": "bearer"}
 
-# Game endpoints
+# Game states stored in memory for simplicity
+game_states = {}
+
 @app.get("/create_game")
 async def create_game():
-    import uuid
     game_id = str(uuid.uuid4())[:8]
-    game_states[game_id] = {"players": [], "hands": {}}
+    game_states[game_id] = {"players": [], "hands": {}, "trump": None, "turn": None, "pairs": {1: 0, 2: 0}, "table": []}
     return {"game_id": game_id}
 
 @app.post("/join_game/{game_id}")
@@ -119,7 +116,7 @@ async def deal_cards(game_id: str):
         raise HTTPException(status_code=400, detail="Not enough players to start the game")
 
     import requests
-    response = requests.get(f"https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1")
+    response = requests.get("https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1")
     if response.status_code != 200:
         raise HTTPException(status_code=500, detail="Error creating deck")
 
@@ -131,7 +128,43 @@ async def deal_cards(game_id: str):
     cards = draw_response.json()["cards"]
     hands = [cards[i:i + 13] for i in range(0, 52, 13)]
     game["hands"] = dict(zip(game["players"], hands))
-    return {"message": "Cards dealt successfully", "hands": game["hands"]}
+
+    # Deal first 5 cards to each player
+    first_five_cards = {player: hand[:5] for player, hand in game["hands"].items()}
+    return {"message": "First 5 cards dealt", "hands": first_five_cards}
+
+@app.post("/select_trump/{game_id}")
+async def select_trump(game_id: str, player_id: str, trump: str):
+    if game_id not in game_states:
+        raise HTTPException(status_code=404, detail="Game not found")
+
+    game = game_states[game_id]
+    if player_id not in game["players"]:
+        raise HTTPException(status_code=400, detail="Player not in game")
+
+    game["trump"] = trump
+
+    # Deal remaining cards
+    remaining_cards = {player: hand[5:] for player, hand in game["hands"].items()}
+    for player, cards in remaining_cards.items():
+        game["hands"][player] = game["hands"][player][:5] + cards
+
+    return {"message": f"Trump selected: {trump}", "hands": game["hands"]}
+
+@app.post("/play_card")
+async def play_card(game_id: str, player_id: str, card_code: str):
+    if game_id not in game_states:
+        raise HTTPException(status_code=404, detail="Game not found")
+
+    game = game_states[game_id]
+    if player_id not in game["players"]:
+        raise HTTPException(status_code=400, detail="Player not in game")
+
+    # Implement game logic here
+    # Update game state, check for pairs, update turn, etc.
+    game["table"].append({"player": player_id, "card": card_code})
+
+    return {"message": "Card played", "table": game["table"], "tricks": game["pairs"]}
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000)
