@@ -1,20 +1,67 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trump Card Game</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <title>Court Piece</title>
+  <link rel="stylesheet" href="/frontend/styles.css" />
 </head>
 <body>
-    <div class="container">
-        <h1>Trump Card Game</h1>
-        <button id="start-btn">Start Game</button>
-        <div id="game-area">
-            <h2>Players</h2>
-            <div id="players"></div>
-        </div>
+  <h1>Court Piece</h1>
+
+  <div class="controls">
+    <button id="startGameBtn">Start / Restart Game</button>
+    <div id="trumpPickerSection" style="display:none;">
+      <label for="trumpSelect">Pick Trump:</label>
+      <select id="trumpSelect">
+        <option value="">-- Select Suit --</option>
+        <option value="HEARTS">Hearts</option>
+        <option value="DIAMONDS">Diamonds</option>
+        <option value="CLUBS">Clubs</option>
+        <option value="SPADES">Spades</option>
+      </select>
+      <button id="setTrumpBtn">Set Trump</button>
     </div>
-    <script src="scripts.js"></script>
+  </div>
+
+  <div class="info">
+    <p><strong>Trump Picker:</strong> <span id="trumpPicker"></span></p>
+    <p><strong>Trump Suit:</strong> <span id="trumpSuit"></span></p>
+    <p><strong>Current Turn:</strong> <span id="currentTurn"></span></p>
+    <p><strong>Round:</strong> <span id="currentRound"></span> / 13</p>
+    <p><strong>Game Over?</strong> <span id="gameOverStatus"></span></p>
+  </div>
+
+  <div id="scoreBoard" class="scores"></div>
+
+  <div class="table">
+    <!-- Player 3 (top) -->
+    <div class="player player3">
+      <h2>Player 3</h2>
+      <div class="hand" id="player3Hand"></div>
+    </div>
+
+    <!-- Player 2 (left) -->
+    <div class="player player2">
+      <h2>Player 2</h2>
+      <div class="hand" id="player2Hand"></div>
+    </div>
+
+    <!-- Player 4 (right) -->
+    <div class="player player4">
+      <h2>Player 4</h2>
+      <div class="hand" id="player4Hand"></div>
+    </div>
+
+    <!-- Player 1 (bottom) -->
+    <div class="player player1">
+      <h2>Player 1</h2>
+      <div class="hand" id="player1Hand"></div>
+    </div>
+
+    <!-- Center area for current trick -->
+    <div class="trick-center" id="trickCenter"></div>
+  </div>
+
+  <script src="/frontend/scripts.js"></script>
 </body>
 </html>
